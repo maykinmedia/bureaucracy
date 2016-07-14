@@ -1,1 +1,6 @@
 examples/generated*
+*.egg-info
+dist
+
+# word leaves these thing lying around
+~*
