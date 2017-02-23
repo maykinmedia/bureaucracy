@@ -15,8 +15,8 @@ setup(
     description='Templating and pdf generation for docx files',
     long_description=README,
     install_requires=[
-        'pypandoc==1.1.3',
-        'python-docx==0.8.6',
+        'pypandoc',
+        'python-docx',
     ],
     author='Robin Ramael',
     author_email='robin.ramael@maykinmedia.nl',
