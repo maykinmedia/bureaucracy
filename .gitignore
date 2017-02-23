@@ -4,3 +4,6 @@ dist
 
 # word leaves these thing lying around
 ~*
+
+# generated files
+.coveragerc
