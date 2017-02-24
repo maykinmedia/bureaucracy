@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import random
 from collections import OrderedDict
 
 from pptx import Presentation
@@ -35,8 +36,42 @@ def construct_template_code(slide):
     return template_bits
 
 
+class SimpleEngine(object):
+
+    words = 'I am a really, really simple engine'.split()
+
+    def render(self, context):
+        return random.choice(self.words)
+
+
+class TemplateInterface(object):
+
+    def __init__(self, engine, context):
+        self.engine = engine
+        self.context = context
+
+    def render(self, fragment):
+        """
+        Render a template fragment with the configured template engine.
+        """
+        return self.engine.render(self.context)
+
+
 def main():
     pres = Presentation(filepath)
+
+    context = {
+        'brand_logo': goat,
+        'cards': [{
+            'nickname': 'Card 1',
+            'country_code': 'EST',
+            'n_paid': 2,
+            'paid_posts': [{'id': 1}, {'id': 2}],
+            'n_earned': 0,
+            'earned_posts': [],
+        }]
+    }
+    interface = TemplateInterface(SimpleEngine(), context)
 
     print("Checking layouts...")
     for layout in pres.slide_layouts:
@@ -55,7 +90,11 @@ def main():
     print("Setting a test title...")
     slide0.shapes.title.text = "Example title filled in"
 
-    construct_template_code(slide0)
+    template_bits = construct_template_code(slide0)
+    for idx, template_bit in template_bits.items():
+        placeholder = slide0.placeholders[idx]
+        rendered = interface.render(template_bit)
+        placeholder.text = rendered
 
     # print("Filling in an image")
     # logo_ph = slide0.placeholders[10]
