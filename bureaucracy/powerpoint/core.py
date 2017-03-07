@@ -62,6 +62,7 @@ class Template:
             context
         )
 
+        # TODO: handle repeating slides
         for slide in self._presentation.slides:
             fragments = self.extract_template_code(slide)
             for idx, fragment in fragments.items():
