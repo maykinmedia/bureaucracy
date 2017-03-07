@@ -69,6 +69,9 @@ class Template:
                 rendered = interface.render(fragment)
                 placeholder.text = rendered
 
+    def save_to(self, outfile):
+        self._presentation.save(outfile)
+
 
 class TemplateInterface:
     def __init__(self, engine, context):
