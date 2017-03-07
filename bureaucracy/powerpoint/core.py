@@ -5,6 +5,8 @@ from collections import OrderedDict
 
 from pptx import Presentation
 
+from .engines import PythonEngine
+
 __all__ = ['Template']
 
 
@@ -53,3 +55,31 @@ class Template:
         Returns the names of the slide layouts present in the template file.
         """
         return [layout.name for layout in self._presentation.slide_layouts]
+
+    def render(self, context, render_engine=PythonEngine):
+        interface = TemplateInterface(
+            render_engine(),
+            context
+        )
+
+        for slide in self._presentation.slides:
+            fragments = self.extract_template_code(slide)
+            for idx, fragment in fragments.items():
+                placeholder = slide.placeholders[idx]
+                rendered = interface.render(fragment)
+                placeholder.text = rendered
+
+
+class TemplateInterface:
+    def __init__(self, engine, context):
+        self.engine = engine
+        self.context = context
+
+    def render(self, fragment):
+        """
+        Delegates rendering to the configured engine.
+
+        This allows the actual engine to modify the context object when
+        rendering a particular fragment, on purpose.
+        """
+        return self.engine.render(fragment, self.context)
