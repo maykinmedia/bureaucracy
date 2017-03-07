@@ -5,6 +5,8 @@ from collections import OrderedDict
 
 from pptx import Presentation
 
+__all__ = ['Template']
+
 
 class Template:
     """
