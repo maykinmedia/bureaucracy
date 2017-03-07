@@ -1,6 +1,9 @@
 examples/generated*
 *.egg-info
 dist
+.eggs/
+__pycache__
+.cache/
 
 # word leaves these thing lying around
 ~*

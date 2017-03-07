@@ -11,7 +11,6 @@ class RenderTests(DocxTestsBase):
         self.out_path = os.path.join(resources_dir, 'tmp.docx')
         self.out_path_pdf = os.path.join(resources_dir, 'tmp.pdf')
 
-
     def tearDown(self):
         if os.path.exists(self.out_path):
             os.remove(self.out_path)

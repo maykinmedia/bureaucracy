@@ -2,6 +2,7 @@ import itertools
 import logging
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 from copy import deepcopy
@@ -201,7 +202,7 @@ class DocxTemplate(Document):
                             stdout=subprocess.DEVNULL)
 
             if path:
-                os.rename(tmp_pdf_path, path)
+                shutil.move(tmp_pdf_path, path)
             else:
                 with open(tmp_pdf_path, 'rb') as f:
                     return f.read()

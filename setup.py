@@ -1,7 +1,7 @@
 import os
 from setuptools import find_packages, setup
 
-with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
+with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
 
 # allow setup.py to be run from any path
@@ -9,18 +9,27 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='burocracy',
-    version='0.1',
-    packages=find_packages(),
-    include_package_data=True,
-    description='Templating and pdf generation for docx files',
-    long_description=README,
+    version='0.2.dev0',
+    license='MIT',
+
     install_requires=[
         'pypandoc',
         'python-docx',
     ],
-    author='Robin Ramael',
-    author_email='robin.ramael@maykinmedia.nl',
+    include_package_data=True,
+    packages=find_packages(exclude=["tests"]),
+
+    setup_requires=['pytest-runner'],
+    tests_require=[
+        'PyPDF2'
+    ],
+
+    description='Templating and pdf generation for docx/pptx files',
+    long_description=README,
+    author='Maykin Media, Robin Ramael, Sergei Maertens',
+    author_email='robin.ramael@maykinmedia.nl, sergei@maykinmedia.nl',
     classifiers=[
+        'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
