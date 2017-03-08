@@ -69,6 +69,24 @@ class Template:
                 placeholder = slide.placeholders[idx]
                 rendered = interface.render(fragment)
                 placeholder.text = rendered
+                self._remove_empty_placeholder(slide, idx)
+
+    @staticmethod
+    def _remove_empty_placeholder(slide, idx):
+        """
+        If the placeholder is empty AND has zero height, remove it from the slide.
+        """
+        placeholder = slide.placeholders[idx]
+        # only consider empty placeholders
+        if placeholder.text:
+            return
+
+        # only consider placeholders with zero height
+        if not placeholder.height == 0:
+            return
+
+        shape = placeholder.element
+        shape.getparent().remove(shape)
 
     def save_to(self, outfile):
         self._presentation.save(outfile)
