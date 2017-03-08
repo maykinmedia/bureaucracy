@@ -73,3 +73,32 @@ def test_template_filled_in_placeholders(tmpdir):
     # compare rendered output
     assert second_slide.placeholders[ph1].text == 'Filled in placeholder – should not be replaced'
     assert second_slide.placeholders[ph2].text == 'Another simple Python string format template'
+
+
+def test_control_placeholder(tmpdir):
+    """
+    Assert that control placeholders with zero-height are removed.
+
+    A control placeholder can modify the context datastructure in place in
+    prepration for the next placeholder(s). If it's deliberately set up to be
+    zero height AND the output result is empty, it should be removed from the
+    presentation alltogether to reduced clutter and confusion.
+    """
+    test_file = str(TEST_FILES / 'control-placeholder.pptx')
+    template = Template(test_file)
+    assert len(template._presentation.slides[0].placeholders) == 3
+
+    context = {'control_placeholder_no_output': ''}
+    template.render(context, render_engine=PythonEngine)
+    outfile = str(tmpdir.join('control-ph.pptx'))
+    template.save_to(outfile)
+
+    # check that the contents are correctly templated out
+    pres = Presentation(outfile)
+    assert len(pres.slides) == 1
+
+    slide = pres.slides[0]
+    assert len(slide.placeholders) == 2
+
+    ph_texts = [ph.text for ph in slide.placeholders]
+    assert ph_texts == ['Click to edit Master title style', '{ brand_logo }']
