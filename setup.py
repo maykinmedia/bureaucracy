@@ -21,7 +21,8 @@ setup(
 
     setup_requires=['pytest-runner'],
     tests_require=[
-        'PyPDF2'
+        'PyPDF2',
+        'pytest-cov',
     ],
 
     description='Templating and pdf generation for docx/pptx files',
