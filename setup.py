@@ -15,6 +15,7 @@ setup(
     install_requires=[
         'pypandoc',
         'python-docx',
+        'python-pptx',
     ],
     include_package_data=True,
     packages=find_packages(exclude=["tests"]),

@@ -9,4 +9,8 @@ __pycache__
 ~*
 
 # generated files
-.coveragerc
+.coverage
+coverage.xml
+htmlcov/
+.tox
+junit.xml
