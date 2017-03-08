@@ -105,21 +105,21 @@ def test_control_placeholder(tmpdir):
     assert ph_texts == ['Click to edit Master title style', '{ brand_logo }']
 
 
-# def test_repeating_slide(tmpdir):
-#     test_file = str(TEST_FILES / 'repeating-slide.pptx')
-#     template = Template(test_file)
-#     assert len(template._presentation.slides) == 1
-#     context = {
-#         'some_list': ['first item', 'second item', 'third item']
-#     }
-#     template.render(context, render_engine=RepeatingSlideEngine)
+def test_repeating_slide(tmpdir):
+    test_file = str(TEST_FILES / 'repeating-slide.pptx')
+    template = Template(test_file)
+    assert len(template._presentation.slides) == 1
+    context = {
+        'some_list': ['first item', 'second item', 'third item']
+    }
+    template.render(context, render_engine=RepeatingSlideEngine)
 
-#     outfile = str(tmpdir.join('control-ph.pptx'))
-#     template.save_to(outfile)
+    outfile = str(tmpdir.join('control-ph.pptx'))
+    template.save_to(outfile)
 
-#     # check that the contents are correctly templated out
-#     pres = Presentation(outfile)
-#     assert len(pres.slides) == 3
+    # check that the contents are correctly templated out
+    pres = Presentation(outfile)
+    assert len(pres.slides) == 3
 
 
 def test_ph_ordering(tmpdir):

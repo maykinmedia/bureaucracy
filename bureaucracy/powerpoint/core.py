@@ -6,6 +6,8 @@ from collections import OrderedDict
 from pptx import Presentation
 
 from .engines import PythonEngine
+from .shapes import ShapeContainer
+from .slides import SlideContainer
 
 __all__ = ['Template']
 
@@ -103,17 +105,15 @@ class Template:
         return [layout.name for layout in self._presentation.slide_layouts]
 
     def render(self, context, render_engine=PythonEngine):
-        interface = TemplateInterface(
-            render_engine(),
-            context
-        )
+        engine = render_engine()
 
         # TODO: handle repeating slides
         for slide in self._presentation.slides:
+            slide = SlideContainer(slide, self._presentation)
             fragments = self.extract_template_code(slide)
             for idx, fragment in fragments.items():
                 placeholder = slide.placeholders[idx]
-                rendered = interface.render(fragment)
+                rendered = engine.render(fragment, context, slide)
                 placeholder.text = rendered
                 self._remove_empty_placeholder(slide, idx)
 
@@ -136,76 +136,3 @@ class Template:
 
     def save_to(self, outfile):
         self._presentation.save(outfile)
-
-
-class TemplateInterface:
-    def __init__(self, engine, context):
-        self.engine = engine
-        self.context = context
-
-    def render(self, fragment):
-        """
-        Delegates rendering to the configured engine.
-
-        This allows the actual engine to modify the context object when
-        rendering a particular fragment, on purpose.
-        """
-        return self.engine.render(fragment, self.context)
-
-
-class ShapeContainer:
-    def __init__(self, shape):
-        self.shape = shape
-        self.children = []
-        self.parents = []
-
-    def wraps(self, other_shape):
-        # other x coordinates must be less or equal than this ones
-        if other_shape.x1 < self.x1 or other_shape.x2 > self.x2:
-            return False
-        # other y coordinates must be less or equal than this ones
-        if other_shape.y1 < self.y1 or other_shape.y2 > self.y2:
-            return False
-        return True
-
-    def add_child(self, other_shape):
-        self.children.append(other_shape)
-        other_shape.parents.append(self)
-
-    @property
-    def x1(self):
-        return self.shape.left
-
-    @property
-    def x2(self):
-        return self.shape.left + self.shape.width
-
-    @property
-    def y1(self):
-        return self.shape.top
-
-    @property
-    def y2(self):
-        return self.shape.top + self.shape.height
-
-    @property
-    def center_x(self):
-        return self.shape.left + self.shape.width / 2
-
-    @property
-    def center_y(self):
-        return self.shape.top + self.shape.height / 2
-
-    @property
-    def is_root(self):
-        return not self.parents
-
-    def get_placeholders(self):
-        """
-        Flatten the nested structure and return the placeholders in the correct order.
-        """
-        placeholders = [self.shape] if self.shape.is_placeholder else []
-        children = sorted(self.children, key=lambda s: (s.center_y, s.center_x))
-        for child in children:
-            placeholders += child.get_placeholders()
-        return placeholders
