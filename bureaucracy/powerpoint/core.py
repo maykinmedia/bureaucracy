@@ -40,12 +40,12 @@ class Template:
         for placeholder in slide.slide_layout.placeholders:
             fragments[placeholder.placeholder_format.idx] = placeholder.text
 
-        # if a value exists for the placeholder in the slide itself, overwrite
-        # the template code
+        # if a value exists for the placeholder in the slide itself, ignore the
+        # template code
         for placeholder in slide.placeholders:
             if not placeholder.text:
                 continue
-            fragments[placeholder.placeholder_format.idx] = placeholder.text
+            del fragments[placeholder.placeholder_format.idx]
 
         return fragments
 
