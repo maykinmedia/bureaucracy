@@ -1,11 +1,12 @@
 from pathlib import Path
+from unittest.mock import patch
 
 from pptx import Presentation
 
 from bureaucracy.powerpoint import Template
 from bureaucracy.powerpoint.engines import PythonEngine
 
-from .engines import ConstantEngine
+from .engines import ConstantEngine, RepeatingSlideEngine
 
 
 TEST_FILES = Path(__file__).parent / 'files'
@@ -102,3 +103,54 @@ def test_control_placeholder(tmpdir):
 
     ph_texts = [ph.text for ph in slide.placeholders]
     assert ph_texts == ['Click to edit Master title style', '{ brand_logo }']
+
+
+# def test_repeating_slide(tmpdir):
+#     test_file = str(TEST_FILES / 'repeating-slide.pptx')
+#     template = Template(test_file)
+#     assert len(template._presentation.slides) == 1
+#     context = {
+#         'some_list': ['first item', 'second item', 'third item']
+#     }
+#     template.render(context, render_engine=RepeatingSlideEngine)
+
+#     outfile = str(tmpdir.join('control-ph.pptx'))
+#     template.save_to(outfile)
+
+#     # check that the contents are correctly templated out
+#     pres = Presentation(outfile)
+#     assert len(pres.slides) == 3
+
+
+def test_ph_ordering(tmpdir):
+    """
+    Assert that the placeholder template fragments are passed to the template
+    engine in the right order.
+    """
+    test_file = str(TEST_FILES / 'ordering-placeholder.pptx')
+    template = Template(test_file)
+    assert len(template._presentation.slides) == 1
+    context = {
+        'first': 'First',
+        'second': 'Second',
+        'third': 'Third',
+        'fourth': 'Fourth',
+    }
+
+    with patch.object(PythonEngine, 'render', return_value='some-string') as mocked_render:
+        template.render(context, render_engine=PythonEngine)
+
+    outfile = str(tmpdir.join('order-ph.pptx'))
+    template.save_to(outfile)
+
+    # check that the contents are correctly templated out
+    pres = Presentation(outfile)
+    assert len(pres.slides) == 1
+
+    expected_calls = [
+        (('{second}', context),),
+        (('{third}', context),),
+        (('{fourth}', context),),
+        (('{first}', context),),
+    ]
+    assert mocked_render.call_args_list == expected_calls

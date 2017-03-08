@@ -21,7 +21,51 @@ class Template:
         self._presentation = Presentation(pptx)
 
     @staticmethod
-    def extract_template_code(slide):
+    def extract_shapes(slide):
+        """
+        Extracts all the shapes from the slide and build a tree.
+
+        Big shapes can wrap small shapes, and based on this we can re-group
+        and nest them to apply an ordering to shapes (and thus placeholders).
+        """
+        if not slide.shapes:
+            return []
+
+        shapes = sorted(slide.shapes, key=lambda s: (s.width, s.height), reverse=True)
+        wrapped_shapes = [ShapeContainer(shape) for shape in shapes]
+
+        all_shapes = []
+
+        while wrapped_shapes:
+            shape = wrapped_shapes.pop(0)
+            all_shapes.append(shape)
+            for other_shape in wrapped_shapes:
+                if not shape.wraps(other_shape):
+                    continue
+                shape.add_child(other_shape)
+
+        # root shapes are the shapes without parent (= the biggest shapes that wrap other shapes)
+        root_shapes = [shape for shape in all_shapes if shape.is_root]
+        # finally, order by the center point of the shape
+        root_shapes = sorted(root_shapes, key=lambda s: (s.center_y, s.center_x))
+        return root_shapes
+
+    def get_placeholder_idx_in_correct_order(self, slide, fragments):
+        """
+        Given a slide, determine the order of template fragment evaluation.
+
+        The slide placeholders are grouped by shapes which indicate that a
+        set of placeholders needs to be evaluated before another set. This
+        nesting translates into a deterministic order - top to bottom, and
+        within a horizontal row from left to right.
+        """
+        shapes = self.extract_shapes(slide)
+        # we now have the correct order for the placeholders
+        placeholders = sum((shape.get_placeholders() for shape in shapes), [])
+        ordered_phs = [ph.placeholder_format.idx for ph in placeholders]
+        return [idx for idx in ordered_phs if idx in fragments]
+
+    def extract_template_code(self, slide):
         """
         Extract the template code from slide placeholders.
 
@@ -34,7 +78,7 @@ class Template:
         :return: an OrderedDict with placeholder id's as key and template code
           as value.
         """
-        fragments = OrderedDict()
+        fragments = {}
 
         # set up the slide layout placeholder as template code
         for placeholder in slide.slide_layout.placeholders:
@@ -47,7 +91,9 @@ class Template:
                 continue
             del fragments[placeholder.placeholder_format.idx]
 
-        return fragments
+        idxes = self.get_placeholder_idx_in_correct_order(slide, fragments)
+        # return the template bits in the right order
+        return OrderedDict((idx, fragments[idx]) for idx in idxes)
 
     @property
     def layouts(self):
@@ -105,3 +151,61 @@ class TemplateInterface:
         rendering a particular fragment, on purpose.
         """
         return self.engine.render(fragment, self.context)
+
+
+class ShapeContainer:
+    def __init__(self, shape):
+        self.shape = shape
+        self.children = []
+        self.parents = []
+
+    def wraps(self, other_shape):
+        # other x coordinates must be less or equal than this ones
+        if other_shape.x1 < self.x1 or other_shape.x2 > self.x2:
+            return False
+        # other y coordinates must be less or equal than this ones
+        if other_shape.y1 < self.y1 or other_shape.y2 > self.y2:
+            return False
+        return True
+
+    def add_child(self, other_shape):
+        self.children.append(other_shape)
+        other_shape.parents.append(self)
+
+    @property
+    def x1(self):
+        return self.shape.left
+
+    @property
+    def x2(self):
+        return self.shape.left + self.shape.width
+
+    @property
+    def y1(self):
+        return self.shape.top
+
+    @property
+    def y2(self):
+        return self.shape.top + self.shape.height
+
+    @property
+    def center_x(self):
+        return self.shape.left + self.shape.width / 2
+
+    @property
+    def center_y(self):
+        return self.shape.top + self.shape.height / 2
+
+    @property
+    def is_root(self):
+        return not self.parents
+
+    def get_placeholders(self):
+        """
+        Flatten the nested structure and return the placeholders in the correct order.
+        """
+        placeholders = [self.shape] if self.shape.is_placeholder else []
+        children = sorted(self.children, key=lambda s: (s.center_y, s.center_x))
+        for child in children:
+            placeholders += child.get_placeholders()
+        return placeholders
