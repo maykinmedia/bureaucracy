@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 from unittest.mock import patch
 
@@ -7,7 +8,6 @@ from bureaucracy.powerpoint import Template
 from bureaucracy.powerpoint.engines import PythonEngine
 
 from .engines import ConstantEngine, RepeatingSlideEngine
-
 
 TEST_FILES = Path(__file__).parent / 'files'
 
@@ -154,3 +154,31 @@ def test_ph_ordering(tmpdir):
         (('{first}', context),),
     ]
     assert mocked_render.call_args_list == expected_calls
+
+def test_img_placeholder(tmpdir):
+    test_file = str(TEST_FILES / 'simple_img.pptx')
+    template = Template(test_file)
+    assert len(template._presentation.slides[0].placeholders) == 1
+
+    goat = str(TEST_FILES / 'goat.jpg')
+
+    context = {
+        'goat_here_pls': goat,
+    }
+
+    template.render(context, render_engine=PythonEngine)
+    outfile = str(tmpdir.join('placeholders.pptx'))
+    template.save_to(outfile)
+
+    # check that the contents are correctly templated out
+
+    pres = Presentation(outfile)
+    assert len(pres.slides) == 1
+
+    slide = pres.slides[0]
+    # although the image file itself is placed elsewhere in the pptx zip, the image tag inside the slide tag
+    # holds the image's sha1. checking that is enough for now.
+    with open(goat, 'rb') as goat_file:
+        expected_img_hexdigest = hashlib.sha1(goat_file.read()).hexdigest()
+    assert expected_img_hexdigest == slide.shapes[0].image.sha1
+

@@ -1,9 +1,12 @@
 """
 Public interface to use powerpoint presentations as export template.
 """
+import os
+import warnings
 from collections import OrderedDict
 
 from pptx import Presentation
+from pptx.enum.shapes import PP_PLACEHOLDER
 
 from .engines import PythonEngine
 from .shapes import ShapeContainer
@@ -112,9 +115,16 @@ class Template:
             slide = SlideContainer(slide, self._presentation)
             fragments = self.extract_template_code(slide)
             for idx, fragment in fragments.items():
+
                 placeholder = slide.placeholders[idx]
                 rendered = engine.render(fragment, context, slide)
-                placeholder.text = rendered
+                if placeholder.placeholder_format.type == PP_PLACEHOLDER.PICTURE:
+                    if os.path.exists(rendered):
+                        placeholder.insert_picture(rendered)
+                    else:
+                        warnings.warn("File '{}' does not exist.")
+                else:
+                    placeholder.text = rendered
                 self._remove_empty_placeholder(slide, idx)
 
     @staticmethod
@@ -124,7 +134,7 @@ class Template:
         """
         placeholder = slide.placeholders[idx]
         # only consider empty placeholders
-        if placeholder.text:
+        if hasattr(placeholder, 'text') and placeholder.text:
             return
 
         # only consider placeholders with zero height
