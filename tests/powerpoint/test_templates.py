@@ -7,7 +7,10 @@ from pptx import Presentation
 from bureaucracy.powerpoint import Template
 from bureaucracy.powerpoint.engines import PythonEngine
 
-from .engines import ConstantEngine, HyperlinkEngine, RepeatingSlideEngine
+from .engines import (
+    ConstantEngine, HyperlinkEngine,
+    HyperlinkEngine2, RepeatingSlideEngine
+)
 
 TEST_FILES = Path(__file__).parent / 'files'
 
@@ -223,3 +226,35 @@ def test_hyperlink(tmpdir):
     assert len(placeholder.text_frame.paragraphs) == 1
     assert len(placeholder.text_frame.paragraphs[0].runs) == 1
     assert placeholder.text_frame.paragraphs[0].runs[0].hyperlink.address == 'https://maykinmedia.nl'
+
+
+def test_hyperlinks_in_for_loop(tmpdir):
+    test_file = str(TEST_FILES / 'hyperlink2.pptx')
+    template = Template(test_file)
+    assert len(template._presentation.slides) == 1
+
+    context = {
+        'objs': [
+            ContextObject(link='https://maykinmedia.nl', desc='Maykin Media'),
+            ContextObject(link='http://www.obeythetestinggoat.com/', desc='Goat')
+        ]
+    }
+    template.render(context, render_engine=HyperlinkEngine2)
+    outfile = str(tmpdir.join('hyperlink2.pptx'))
+    template.save_to(outfile)
+
+    # check that the contents are correctly templated out
+    pres = Presentation(outfile)
+    assert len(pres.slides) == 1
+
+    placeholder = [ph for ph in pres.slides[0].placeholders][0]
+    assert len(placeholder.text_frame.paragraphs) == 1
+
+    paragraph = placeholder.text_frame.paragraphs[0]
+    assert len(paragraph.runs) == 4  # 2 texts, 2 newlines
+    assert paragraph.runs[0].text == 'Maykin Media'
+    assert paragraph.runs[0].hyperlink.address == 'https://maykinmedia.nl'
+    assert paragraph.runs[1].text == '\n'
+    assert paragraph.runs[2].text == 'Goat'
+    assert paragraph.runs[2].hyperlink.address == 'http://www.obeythetestinggoat.com/'
+    assert paragraph.runs[3].text == '\n'

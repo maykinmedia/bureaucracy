@@ -5,8 +5,10 @@ This module defines the base engine to render template fragments.
 
 class BaseEngine:
 
-    @staticmethod
-    def render(fragment, context, slide):
+    current_slide = None
+    current_placeholder = None
+
+    def render(self, fragment, context):
         raise NotImplementedError("You must implement the `render` method.")
 
 
@@ -16,5 +18,5 @@ class PythonEngine(BaseEngine):
     """
 
     @staticmethod
-    def render(fragment, context, slide):
+    def render(fragment, context):
         return fragment.format(**context)
