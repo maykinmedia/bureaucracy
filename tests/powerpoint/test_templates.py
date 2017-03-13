@@ -41,6 +41,7 @@ def test_template_render(tmpdir):
     slide = pres.slides[0]
     assert slide.slide_layout.name == 'influencers'
 
+    assert len(slide.placeholders) == 31 + 6
     for ph in slide.placeholders:
         assert ph.text == 'Constant'
 
@@ -96,7 +97,7 @@ def test_control_placeholder(tmpdir):
     """
     test_file = str(TEST_FILES / 'control-placeholder.pptx')
     template = Template(test_file)
-    assert len(template._presentation.slides[0].placeholders) == 3
+    assert len(template._presentation.slides[0].placeholders) == 2
 
     context = {'control_placeholder_no_output': ''}
     template.render(context, render_engine=PythonEngine)
@@ -108,10 +109,10 @@ def test_control_placeholder(tmpdir):
     assert len(pres.slides) == 1
 
     slide = pres.slides[0]
-    assert len(slide.placeholders) == 2
+    assert len(slide.placeholders) == 1
 
     ph_texts = [ph.text for ph in slide.placeholders]
-    assert ph_texts == ['Click to edit Master title style', '{ brand_logo }']
+    assert ph_texts == ['Click to edit Master title style']
 
 
 def test_repeating_slide(tmpdir):
