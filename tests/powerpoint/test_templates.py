@@ -121,6 +121,18 @@ def test_repeating_slide(tmpdir):
     pres = Presentation(outfile)
     assert len(pres.slides) == 3
 
+    def get_placeholder(slide):
+        assert len(slide.placeholders) == 1
+        return [ph for ph in slide.placeholders][0]
+
+    # check that the extra slides are actually templated out
+    ph1 = get_placeholder(pres.slides[0])
+    ph2 = get_placeholder(pres.slides[1])
+    ph3 = get_placeholder(pres.slides[2])
+    assert ph1.text == 'first item'
+    assert ph2.text == 'second item'
+    assert ph3.text == 'third item'
+
 
 def test_ph_ordering(tmpdir):
     """

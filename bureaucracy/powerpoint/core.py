@@ -15,6 +15,31 @@ from .slides import SlideContainer
 __all__ = ['Template']
 
 
+class TemplateIterator:
+    """
+    Iterater that knows how to deal with newly inserted slides.
+
+    This is private API.
+    """
+
+    def __init__(self, slides):
+        self.slides = slides
+        self.current = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        """
+        Return the next slide in the slideset, which may have been inserted.
+        """
+        if self.current >= len(self.slides):
+            raise StopIteration
+        slide = self.slides[self.current]
+        self.current += 1
+        return slide
+
+
 class Template:
     """
     A powerpoint presentation that serves as a template.
@@ -24,6 +49,9 @@ class Template:
 
     def __init__(self, pptx):
         self._presentation = Presentation(pptx)
+
+    def __iter__(self):
+        return TemplateIterator(self._presentation.slides)
 
     @staticmethod
     def extract_shapes(slide):
@@ -110,8 +138,7 @@ class Template:
     def render(self, context, render_engine=PythonEngine):
         engine = render_engine()
 
-        # TODO: handle repeating slides
-        for slide in self._presentation.slides:
+        for slide in self:
             slide = SlideContainer(slide, self._presentation)
             fragments = self.extract_template_code(slide)
             for idx, fragment in fragments.items():
