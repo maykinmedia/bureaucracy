@@ -167,6 +167,7 @@ def test_ph_ordering(tmpdir):
     ]
     assert mocked_render.call_args_list == expected_calls
 
+
 def test_img_placeholder(tmpdir):
     test_file = str(TEST_FILES / 'simple_img.pptx')
     template = Template(test_file)
@@ -193,4 +194,3 @@ def test_img_placeholder(tmpdir):
     with open(goat, 'rb') as goat_file:
         expected_img_hexdigest = hashlib.sha1(goat_file.read()).hexdigest()
     assert expected_img_hexdigest == slide.shapes[0].image.sha1
-
