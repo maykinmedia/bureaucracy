@@ -144,7 +144,10 @@ class Template:
             for idx, fragment in fragments.items():
 
                 placeholder = slide.placeholders[idx]
-                rendered = engine.render(fragment, context, slide)
+                rendered = engine.render(fragment, context, placeholder, slide)
+                if rendered is None:
+                    continue  # TODO placeholder delete if placeholder.text is empty?
+
                 if placeholder.placeholder_format.type == PP_PLACEHOLDER.PICTURE:
                     if os.path.exists(rendered):
                         placeholder.insert_picture(rendered)

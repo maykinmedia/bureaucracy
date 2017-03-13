@@ -29,3 +29,20 @@ class RepeatingSlideEngine(PythonEngine):
             context[pop_match.group('as_var')] = list_obj.pop(0)
             return ''
         return super().render(fragment, context, slide)
+
+
+class HyperlinkEngine(BaseEngine):
+
+    LINK_TAG = re.compile(r'{% link (?P<link>[\w\.]+) (?P<desc>[\w\.]+) %}')
+
+    def render(cls, fragment, context, placeholder, slide):
+        match = cls.LINK_TAG.match(fragment)
+        _link, _desc = match.group('link'), match.group('desc')
+        link_bits = _link.split('.')
+        desc_bits = _desc.split('.')
+        link = getattr(context[link_bits[0]], link_bits[1])
+        desc = getattr(context[desc_bits[0]], desc_bits[1])
+
+        run = placeholder.text_frame.paragraphs[0].add_run()
+        run.text = desc
+        run.hyperlink.address = link

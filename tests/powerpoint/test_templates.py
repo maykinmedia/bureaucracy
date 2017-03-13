@@ -7,9 +7,15 @@ from pptx import Presentation
 from bureaucracy.powerpoint import Template
 from bureaucracy.powerpoint.engines import PythonEngine
 
-from .engines import ConstantEngine, RepeatingSlideEngine
+from .engines import ConstantEngine, HyperlinkEngine, RepeatingSlideEngine
 
 TEST_FILES = Path(__file__).parent / 'files'
+
+
+class ContextObject:
+    def __init__(self, link, desc):
+        self.link = link
+        self.desc = desc
 
 
 def test_layouts_extraction():
@@ -194,3 +200,26 @@ def test_img_placeholder(tmpdir):
     with open(goat, 'rb') as goat_file:
         expected_img_hexdigest = hashlib.sha1(goat_file.read()).hexdigest()
     assert expected_img_hexdigest == slide.shapes[0].image.sha1
+
+
+def test_hyperlink(tmpdir):
+    test_file = str(TEST_FILES / 'hyperlink.pptx')
+    template = Template(test_file)
+    assert len(template._presentation.slides) == 1
+
+    context = {
+        'obj': ContextObject(link='https://maykinmedia.nl', desc='Maykin Media')
+    }
+    template.render(context, render_engine=HyperlinkEngine)
+    outfile = str(tmpdir.join('hyperlink.pptx'))
+    template.save_to(outfile)
+
+    # check that the contents are correctly templated out
+    pres = Presentation(outfile)
+    assert len(pres.slides) == 1
+
+    placeholder = [ph for ph in pres.slides[0].placeholders][0]
+    assert placeholder.text == 'Maykin Media'
+    assert len(placeholder.text_frame.paragraphs) == 1
+    assert len(placeholder.text_frame.paragraphs[0].runs) == 1
+    assert placeholder.text_frame.paragraphs[0].runs[0].hyperlink.address == 'https://maykinmedia.nl'
