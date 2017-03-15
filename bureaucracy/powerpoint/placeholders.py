@@ -6,24 +6,34 @@ from pptx.shapes.placeholder import BasePlaceholder
 
 from .engines import BaseEngine
 
+CONTEXT_KEY_FOR_PLACEHOLDER = 'PPT_CURRENT_PLACEHOLDER'
+
+AlreadyRendered = object()
+
+
+class AlreadyRenderedException(Exception):
+    pass
+
 
 class PlaceholderContainer:
-
     def __init__(self, placeholder: BasePlaceholder, fragment: str):
         self.placeholder = placeholder
         self.fragment = fragment
 
     def render(self, engine: BaseEngine, context: dict):
-        engine.current_placeholder = self
+        context[CONTEXT_KEY_FOR_PLACEHOLDER] = self
 
-        rendered = engine.render(self.fragment, context)
-        if rendered is None:
-            return  # TODO placeholder delete if placeholder.text is empty?
+        try:
+            rendered = engine.render(self.fragment, context)
+            if rendered is None:
+                return  # TODO placeholder delete if placeholder.text is empty?
 
-        if self.placeholder.placeholder_format.type == PP_PLACEHOLDER.PICTURE:
-            self.render_picture(rendered)
-        else:
-            self.placeholder.text = rendered
+            if self.placeholder.placeholder_format.type == PP_PLACEHOLDER.PICTURE:
+                self.render_picture(rendered)
+            else:
+                self.placeholder.text = rendered
+        except AlreadyRenderedException:
+            pass
 
     def render_picture(self, path):
         if os.path.exists(path):
@@ -50,3 +60,15 @@ class PlaceholderContainer:
         if add_break:
             run = paragraph.add_run()
             run.text = '\n'
+
+    @property
+    def is_empty(self):
+        if hasattr(self.placeholder, 'text') and self.placeholder.text:
+            return False
+        else:
+            return self.placeholder.height == 0
+
+    def remove(self):
+        shape = self.placeholder.element
+        if shape.getparent():
+            shape.getparent().remove(shape)
