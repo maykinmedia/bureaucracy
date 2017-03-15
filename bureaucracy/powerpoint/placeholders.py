@@ -37,7 +37,7 @@ class PlaceholderContainer:
 
     def render_picture(self, path):
         if os.path.exists(path):
-            self.placeholder.insert_picture(path)
+            self.placeholder = self.placeholder.insert_picture(path)
         else:
             warnings.warn("File '{}' does not exist.")
 
