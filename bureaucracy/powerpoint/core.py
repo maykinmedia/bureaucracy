@@ -20,9 +20,6 @@ class TemplateIterator:
         self.slides = slides
         self.current = 0
 
-    def __iter__(self):
-        return self
-
     def __next__(self):
         """
         Return the next slide in the slideset, which may have been inserted.
