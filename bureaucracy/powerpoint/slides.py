@@ -31,7 +31,7 @@ class SlideContainer:
         if not self.slide.shapes:
             return []
 
-        shapes = sorted(self.slide.shapes, key=lambda s: (s.width, s.height), reverse=True)
+        shapes = sorted(self.slide.slide_layout.shapes, key=lambda s: (s.width, s.height), reverse=True)
         wrapped_shapes = [ShapeContainer(shape) for shape in shapes]
 
         all_shapes = []
