@@ -5,14 +5,14 @@ from unittest.mock import patch
 from pptx import Presentation
 
 from bureaucracy.powerpoint import Template
-from bureaucracy.powerpoint.engines import PythonEngine
-
-from .engines import (
-    ConstantEngine, HyperlinkEngine,
-    HyperlinkEngine2, RepeatingSlideEngine
-)
+from bureaucracy.powerpoint.engines import BaseEngine, PythonEngine
 
 TEST_FILES = Path(__file__).parent / 'files'
+
+
+class ConstantEngine(BaseEngine):
+    def render(self, fragment, context):
+        return 'Constant'
 
 
 class ContextObject:
@@ -30,7 +30,7 @@ def test_layouts_extraction():
 def test_template_render(tmpdir):
     test_file = str(TEST_FILES / 'template1.pptx')
     template = Template(test_file)
-    template.render(context=None, render_engine=ConstantEngine)
+    template.render(context={}, render_engine=ConstantEngine)
 
     outfile = str(tmpdir.join('constant-engine.pptx'))
     template.save_to(outfile)
@@ -115,35 +115,6 @@ def test_control_placeholder(tmpdir):
     assert ph_texts == ['Click to edit Master title style']
 
 
-def test_repeating_slide(tmpdir):
-    test_file = str(TEST_FILES / 'repeating-slide.pptx')
-    template = Template(test_file)
-    assert len(template._presentation.slides) == 1
-    context = {
-        'some_list': ['first item', 'second item', 'third item']
-    }
-    template.render(context, render_engine=RepeatingSlideEngine)
-
-    outfile = str(tmpdir.join('control-ph.pptx'))
-    template.save_to(outfile)
-
-    # check that the contents are correctly templated out
-    pres = Presentation(outfile)
-    assert len(pres.slides) == 3
-
-    def get_placeholder(slide):
-        assert len(slide.placeholders) == 1
-        return [ph for ph in slide.placeholders][0]
-
-    # check that the extra slides are actually templated out
-    ph1 = get_placeholder(pres.slides[0])
-    ph2 = get_placeholder(pres.slides[1])
-    ph3 = get_placeholder(pres.slides[2])
-    assert ph1.text == 'first item'
-    assert ph2.text == 'second item'
-    assert ph3.text == 'third item'
-
-
 def test_ph_ordering(tmpdir):
     """
     Assert that the placeholder template fragments are passed to the template
@@ -204,58 +175,3 @@ def test_img_placeholder(tmpdir):
     with open(goat, 'rb') as goat_file:
         expected_img_hexdigest = hashlib.sha1(goat_file.read()).hexdigest()
     assert expected_img_hexdigest == slide.shapes[0].image.sha1
-
-
-def test_hyperlink(tmpdir):
-    test_file = str(TEST_FILES / 'hyperlink.pptx')
-    template = Template(test_file)
-    assert len(template._presentation.slides) == 1
-
-    context = {
-        'obj': ContextObject(link='https://maykinmedia.nl', desc='Maykin Media')
-    }
-    template.render(context, render_engine=HyperlinkEngine)
-    outfile = str(tmpdir.join('hyperlink.pptx'))
-    template.save_to(outfile)
-
-    # check that the contents are correctly templated out
-    pres = Presentation(outfile)
-    assert len(pres.slides) == 1
-
-    placeholder = [ph for ph in pres.slides[0].placeholders][0]
-    assert placeholder.text == 'Maykin Media'
-    assert len(placeholder.text_frame.paragraphs) == 1
-    assert len(placeholder.text_frame.paragraphs[0].runs) == 1
-    assert placeholder.text_frame.paragraphs[0].runs[0].hyperlink.address == 'https://maykinmedia.nl'
-
-
-def test_hyperlinks_in_for_loop(tmpdir):
-    test_file = str(TEST_FILES / 'hyperlink2.pptx')
-    template = Template(test_file)
-    assert len(template._presentation.slides) == 1
-
-    context = {
-        'objs': [
-            ContextObject(link='https://maykinmedia.nl', desc='Maykin Media'),
-            ContextObject(link='http://www.obeythetestinggoat.com/', desc='Goat')
-        ]
-    }
-    template.render(context, render_engine=HyperlinkEngine2)
-    outfile = str(tmpdir.join('hyperlink2.pptx'))
-    template.save_to(outfile)
-
-    # check that the contents are correctly templated out
-    pres = Presentation(outfile)
-    assert len(pres.slides) == 1
-
-    placeholder = [ph for ph in pres.slides[0].placeholders][0]
-    assert len(placeholder.text_frame.paragraphs) == 1
-
-    paragraph = placeholder.text_frame.paragraphs[0]
-    assert len(paragraph.runs) == 4  # 2 texts, 2 newlines
-    assert paragraph.runs[0].text == 'Maykin Media'
-    assert paragraph.runs[0].hyperlink.address == 'https://maykinmedia.nl'
-    assert paragraph.runs[1].text == '\n'
-    assert paragraph.runs[2].text == 'Goat'
-    assert paragraph.runs[2].hyperlink.address == 'http://www.obeythetestinggoat.com/'
-    assert paragraph.runs[3].text == '\n'

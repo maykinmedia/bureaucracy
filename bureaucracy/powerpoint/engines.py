@@ -17,6 +17,5 @@ class PythonEngine(BaseEngine):
     Template engine that relies on python str.format(...).
     """
 
-    @staticmethod
-    def render(fragment, context):
+    def render(self, fragment, context):
         return fragment.format(**context)

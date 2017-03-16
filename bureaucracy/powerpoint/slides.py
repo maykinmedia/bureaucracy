@@ -7,9 +7,10 @@ from .engines import BaseEngine
 from .placeholders import PlaceholderContainer
 from .shapes import ShapeContainer
 
+CONTEXT_KEY_FOR_SLIDE = 'PPT_CURRENT_SLIDE'
+
 
 class SlideContainer:
-
     def __init__(self, slide: Slide, presentation: Presentation):
         self.slide = slide
         self.presentation = presentation
@@ -30,7 +31,7 @@ class SlideContainer:
         if not self.slide.shapes:
             return []
 
-        shapes = sorted(self.slide.shapes, key=lambda s: (s.width, s.height), reverse=True)
+        shapes = sorted(self.slide.slide_layout.shapes, key=lambda s: (s.width, s.height), reverse=True)
         wrapped_shapes = [ShapeContainer(shape) for shape in shapes]
 
         all_shapes = []
@@ -94,33 +95,18 @@ class SlideContainer:
         # return the template bits in the right order
         return OrderedDict((idx, fragments[idx]) for idx in idxes)
 
-    def _remove_empty_placeholder(self, idx):
-        """
-        If the placeholder is empty AND has zero height, remove it from the slide.
-        """
-        placeholder = self.slide.placeholders[idx]
-        # only consider empty placeholders
-        if hasattr(placeholder, 'text') and placeholder.text:
-            return
-
-        # only consider placeholders with zero height
-        if not placeholder.height == 0:
-            return
-
-        shape = placeholder.element
-        shape.getparent().remove(shape)
-
     def render(self, engine: BaseEngine, context: dict):
         """
         Delegate the rendering to the underlying placeholders.
         """
-        engine.current_slide = self
+        context[CONTEXT_KEY_FOR_SLIDE] = self
 
         fragments = self.extract_template_code()
         for idx, fragment in fragments.items():
             placeholder = PlaceholderContainer(self.slide.placeholders[idx], fragment)
             placeholder.render(engine, context)
-            self._remove_empty_placeholder(idx)
+            if placeholder.is_empty:
+                placeholder.remove()
 
     def insert_another(self):
         """

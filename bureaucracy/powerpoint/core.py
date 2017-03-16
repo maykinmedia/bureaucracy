@@ -51,8 +51,9 @@ class Template:
         """
         return [layout.name for layout in self._presentation.slide_layouts]
 
-    def render(self, context, render_engine=PythonEngine):
-        engine = render_engine()
+    def render(self, context, render_engine=PythonEngine, **engine_options):
+        engine = render_engine(**engine_options)
+
         for slide in self:
             slide = SlideContainer(slide, self._presentation)
             slide.render(engine, context)
