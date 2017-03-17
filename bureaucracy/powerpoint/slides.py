@@ -3,9 +3,8 @@ from collections import OrderedDict
 from pptx import Presentation
 from pptx.slide import Slide
 
-from bureaucracy.powerpoint.exceptions import TemplateSyntaxError
-
 from .engines import BaseEngine
+from .exceptions import TemplateSyntaxError
 from .placeholders import PlaceholderContainer
 from .shapes import ShapeContainer
 
@@ -108,8 +107,10 @@ class SlideContainer:
             try:
                 placeholder = PlaceholderContainer(self.slide.placeholders[idx], fragment)
             except KeyError:
-                raise TemplateSyntaxError('Altough it is present on the slide master, this placeholder does'
-                                          'not seem to appear on the slide iself. Did you forget to apply the layout?')
+                raise TemplateSyntaxError(
+                    'Altough it is present on the slide master, the placeholder does '
+                    'not seem to appear on the slide iself. Did you forget to apply the layout?'
+                )
             placeholder.render(engine, context)
             if placeholder.is_empty:
                 placeholder.remove()
