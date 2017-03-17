@@ -1,4 +1,6 @@
-from bureaucracy.replacements import HTMLReplacement, TextReplacement, ImageReplacement, TableReplacement
+from bureaucracy.replacements import (
+    HTMLReplacement, ImageReplacement, TableReplacement, TextReplacement
+)
 from bureaucracy.template import DocxTemplate
 
 HTML = HTMLReplacement

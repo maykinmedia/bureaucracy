@@ -3,9 +3,11 @@ import re
 from copy import copy
 from zipfile import ZipFile
 
-from bureaucracy import HTML, Image, Table
-from bureaucracy.tests.test_fields import DocxTestsBase, resources_dir
 from docx.enum.style import WD_STYLE_TYPE
+
+from bureaucracy import HTML, Image, Table
+
+from .test_fields import DocxTestsBase, resources_dir
 
 
 class ImageReplacementTests(DocxTestsBase):
