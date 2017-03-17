@@ -2,21 +2,23 @@ import itertools
 import logging
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 from copy import deepcopy
 from io import BytesIO
 
-from bureaucracy.replacements import (HTMLReplacement, ImageReplacement,
-                                      Replacement, TableReplacement,
-                                      TextReplacement)
-from bureaucracy.utils import namespaced
 from docx.document import Document
 from docx.opc.constants import CONTENT_TYPE
 from docx.package import Package
 from docx.text.paragraph import Paragraph
 from docx.text.run import Run
 from lxml.etree import tostring
+
+from bureaucracy.replacements import (HTMLReplacement, ImageReplacement,
+                                      Replacement, TableReplacement,
+                                      TextReplacement)
+from bureaucracy.utils import namespaced
 
 r = re.compile(r' MERGEFIELD +"?([^ ]+?)"? +(|\\\* MERGEFORMAT )', re.I)  # fixme. it might be not a simple as that
 # the ooxml standard says that the instrText can be divided over several runs. i have not been able to make microsoft
@@ -201,7 +203,7 @@ class DocxTemplate(Document):
                             stdout=subprocess.DEVNULL)
 
             if path:
-                os.rename(tmp_pdf_path, path)
+                shutil.move(tmp_pdf_path, path)
             else:
                 with open(tmp_pdf_path, 'rb') as f:
                     return f.read()
