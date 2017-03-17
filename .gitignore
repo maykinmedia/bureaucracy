@@ -4,6 +4,7 @@ dist
 .eggs/
 __pycache__
 .cache/
+build/
 
 # word leaves these thing lying around
 ~*
