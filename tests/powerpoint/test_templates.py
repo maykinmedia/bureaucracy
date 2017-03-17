@@ -30,7 +30,7 @@ def test_layouts_extraction():
 def test_template_render(tmpdir):
     test_file = str(TEST_FILES / 'template1.pptx')
     template = Template(test_file)
-    template.render(context={}, render_engine=ConstantEngine)
+    template.render(context={}, engine=ConstantEngine())
 
     outfile = str(tmpdir.join('constant-engine.pptx'))
     template.save_to(outfile)
@@ -55,7 +55,7 @@ def test_template_filled_in_placeholders(tmpdir):
     context = {
         'language': 'Python',
     }
-    template.render(context, render_engine=PythonEngine)
+    template.render(context, engine=PythonEngine())
     outfile = str(tmpdir.join('placeholders.pptx'))
     template.save_to(outfile)
 
@@ -100,7 +100,7 @@ def test_control_placeholder(tmpdir):
     assert len(template._presentation.slides[0].placeholders) == 2
 
     context = {'control_placeholder_no_output': ''}
-    template.render(context, render_engine=PythonEngine)
+    template.render(context, engine=PythonEngine())
     outfile = str(tmpdir.join('control-ph.pptx'))
     template.save_to(outfile)
 
@@ -131,7 +131,7 @@ def test_ph_ordering(tmpdir):
     }
 
     with patch.object(PythonEngine, 'render', return_value='some-string') as mocked_render:
-        template.render(context, render_engine=PythonEngine)
+        template.render(context, engine=PythonEngine())
 
     outfile = str(tmpdir.join('order-ph.pptx'))
     template.save_to(outfile)
@@ -160,7 +160,7 @@ def test_img_placeholder(tmpdir):
         'goat_here_pls': goat,
     }
 
-    template.render(context, render_engine=PythonEngine)
+    template.render(context, engine=PythonEngine())
     outfile = str(tmpdir.join('placeholders.pptx'))
     template.save_to(outfile)
 

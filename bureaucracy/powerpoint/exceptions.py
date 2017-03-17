@@ -1,0 +1,4 @@
+
+
+class TemplateSyntaxError(Exception):
+    pass
