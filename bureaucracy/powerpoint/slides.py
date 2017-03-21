@@ -11,6 +11,13 @@ from .shapes import ShapeContainer
 CONTEXT_KEY_FOR_SLIDE = 'PPT_CURRENT_SLIDE'
 
 
+class StopSlideRender(Exception):
+    """
+    Signals that a slide should stop rendering where it is now.
+    """
+    pass
+
+
 class SlideContainer:
     def __init__(self, slide: Slide, presentation: Presentation):
         self.slide = slide
@@ -111,9 +118,13 @@ class SlideContainer:
                     'Altough it is present on the slide master, the placeholder does '
                     'not seem to appear on the slide iself. Did you forget to apply the layout?'
                 )
-            placeholder.render(engine, context)
-            if placeholder.is_empty:
-                placeholder.remove()
+            try:
+                placeholder.render(engine, context)
+            except StopSlideRender:
+                break
+            finally:
+                if placeholder.is_empty:
+                    placeholder.remove()
 
     def insert_another(self):
         """
