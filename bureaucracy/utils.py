@@ -18,3 +18,10 @@ def namespaced(name, ns='w'):
 
 DOCX_MIMETYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 PDF_MIMETYPE = 'application/pdf'
+PPTX_MIMETYPE = 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+
+DOCUMENT_MIME_TYPES = {
+    'docx': DOCX_MIMETYPE,
+    'pdf': PDF_MIMETYPE,
+    'pptx': PPTX_MIMETYPE
+}
