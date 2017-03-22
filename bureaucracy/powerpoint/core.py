@@ -1,6 +1,7 @@
 """
 Public interface to use powerpoint presentations as export template.
 """
+from io import BytesIO
 from pptx import Presentation
 
 from .engines import PythonEngine
@@ -59,3 +60,9 @@ class Template:
 
     def save_to(self, outfile):
         self._presentation.save(outfile)
+
+    def to_bytes(self):
+        handle = BytesIO()
+        self._presentation.save(handle)
+        handle.seek(0)
+        return handle.read()
