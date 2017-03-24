@@ -61,7 +61,8 @@ class PlaceholderContainer:
             run.text = '\n'
 
     def insert_table(self, n_rows, n_cols):
-        return self.placeholder.insert_table(n_rows, n_cols)
+        self.placeholder = self.placeholder.insert_table(n_rows, n_cols)
+        return self.placeholder
 
     @property
     def is_empty(self):
