@@ -2,7 +2,6 @@ import os
 import warnings
 
 from pptx.enum.shapes import PP_PLACEHOLDER
-from pptx.shapes.placeholder import BasePlaceholder
 
 from .engines import BaseEngine
 
@@ -16,7 +15,7 @@ class AlreadyRenderedException(Exception):
 
 
 class PlaceholderContainer:
-    def __init__(self, placeholder: BasePlaceholder, fragment: str):
+    def __init__(self, placeholder, fragment: str):
         self.placeholder = placeholder
         self.fragment = fragment
 
@@ -61,8 +60,15 @@ class PlaceholderContainer:
             run = paragraph.add_run()
             run.text = '\n'
 
+    def insert_table(self, n_rows, n_cols):
+        self.placeholder = self.placeholder.insert_table(n_rows, n_cols)
+        return self.placeholder
+
     @property
     def is_empty(self):
+        if self.placeholder.has_table:
+            return False
+
         if hasattr(self.placeholder, 'text') and self.placeholder.text:
             return False
         else:

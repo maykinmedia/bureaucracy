@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 from pptx import Presentation
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.slide import Slide
 
 from .engines import BaseEngine
