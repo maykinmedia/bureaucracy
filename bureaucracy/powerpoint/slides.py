@@ -1,7 +1,7 @@
 from collections import OrderedDict
+from copy import copy
 
 from pptx import Presentation
-from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.slide import Slide
 
 from .engines import BaseEngine
@@ -141,4 +141,5 @@ class SlideContainer:
         # always at the end, and the ID is fixed (does not indicate position)
         # move the element to behind the current slide
         slide_list = self.presentation.slides._sldIdLst
-        slide_list[current_index + 1] = slide_list[-1]
+        slide_list.insert(current_index + 1, copy(slide_list[-1]))
+        del slide_list[-1]
