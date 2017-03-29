@@ -28,6 +28,7 @@ class PlaceholderContainer:
                 return  # TODO placeholder delete if placeholder.text is empty?
 
             if self.placeholder.placeholder_format.type == PP_PLACEHOLDER.PICTURE:
+                rendered = rendered.strip()
                 self.render_picture(rendered)
             else:
                 self.placeholder.text = rendered
@@ -76,5 +77,6 @@ class PlaceholderContainer:
 
     def remove(self):
         shape = self.placeholder.element
-        if shape.getparent():
-            shape.getparent().remove(shape)
+        parent = shape.getparent()
+        if parent is not None:
+            parent.remove(shape)
