@@ -28,6 +28,7 @@ class PlaceholderContainer:
                 return  # TODO placeholder delete if placeholder.text is empty?
 
             if self.placeholder.placeholder_format.type == PP_PLACEHOLDER.PICTURE:
+                rendered = rendered.strip()
                 self.render_picture(rendered)
             else:
                 self.placeholder.text = rendered
