@@ -77,5 +77,6 @@ class PlaceholderContainer:
 
     def remove(self):
         shape = self.placeholder.element
-        if shape.getparent():
-            shape.getparent().remove(shape)
+        parent = shape.getparent()
+        if parent is not None:
+            parent.remove(shape)
