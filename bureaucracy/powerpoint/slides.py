@@ -96,7 +96,7 @@ class SlideContainer:
         # if a value exists for the placeholder in the slide itself, ignore the
         # template code
         for placeholder in self.slide.placeholders:
-            if not placeholder.text:
+            if not placeholder.has_text_frame or not placeholder.text:
                 continue
             del fragments[placeholder.placeholder_format.idx]
 
