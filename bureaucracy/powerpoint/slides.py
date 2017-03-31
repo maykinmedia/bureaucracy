@@ -4,9 +4,11 @@ from copy import copy
 from pptx import Presentation
 from pptx.slide import Slide
 
+from bureaucracy.powerpoint.tables import TableContainer
+
 from .engines import BaseEngine
 from .exceptions import TemplateSyntaxError
-from .placeholders import PlaceholderContainer
+from .placeholders import AlreadyRenderedException, PlaceholderContainer
 from .shapes import ShapeContainer
 
 CONTEXT_KEY_FOR_SLIDE = 'PPT_CURRENT_SLIDE'
@@ -126,6 +128,14 @@ class SlideContainer:
             finally:
                 if placeholder.is_empty:
                     placeholder.remove()
+
+        tables = [TableContainer(shape.table) for shape in self.slide.shapes if shape.has_table]
+
+        for table in tables:
+            try:
+                table.render(engine, context)
+            except AlreadyRenderedException:
+                pass
 
     def insert_another(self):
         """
