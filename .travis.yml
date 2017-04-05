@@ -5,6 +5,7 @@ python:
 addons:
   apt_packages:
     - pandoc
+    - libreoffice-common
 
 install:
   - pip install coverage coveralls codecov tox
