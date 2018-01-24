@@ -1,3 +1,4 @@
+import logging
 import os
 import warnings
 
@@ -8,6 +9,8 @@ from .engines import BaseEngine
 CONTEXT_KEY_FOR_PLACEHOLDER = 'PPT_CURRENT_PLACEHOLDER'
 
 AlreadyRendered = object()
+
+logger = logging.getLogger('PLACEHOLDER_DEBUG')
 
 
 class AlreadyRenderedException(Exception):
@@ -37,7 +40,13 @@ class PlaceholderContainer:
 
     def render_picture(self, path):
         if os.path.exists(path):
-            self.placeholder = self.placeholder.insert_picture(path)
+            try:
+                self.placeholder = self.placeholder.insert_picture(path)
+            except OSError as err:
+                logger.warning("Cannot identify the image at: '{}'."
+                               "Leaving it empty and passing to the next image. "
+                               "Exception: cannot identify image file, errno={}".format(path, err.errno))
+
         else:
             warnings.warn("File '{}' does not exist.")
 
