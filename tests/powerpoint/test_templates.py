@@ -1,7 +1,7 @@
 import hashlib
-import unittest
 import sys
 import pytest
+import unittest
 
 from testfixtures import compare, Comparison as C, LogCapture
 
@@ -195,10 +195,10 @@ def test_not_identifiable_img_placeholder(tmpdir):
         'goat_here_pls': wrong_image,
     }
 
-    with LogCapture('PLACEHOLDER_DEBUG') as l:
+    with LogCapture('bureaucracy.powerpoin') as l:
         l.clear()
         template.render(context, engine=PythonEngine())
-        l.check(('PLACEHOLDER_DEBUG',
+        l.check(('bureaucracy.powerpoin',
                 'WARNING',
                 "Cannot identify the image at: '{}'."
                 "Leaving it empty and passing to the next image. "

@@ -10,7 +10,7 @@ CONTEXT_KEY_FOR_PLACEHOLDER = 'PPT_CURRENT_PLACEHOLDER'
 
 AlreadyRendered = object()
 
-logger = logging.getLogger('PLACEHOLDER_DEBUG')
+logger = logging.getLogger('bureaucracy.powerpoin')
 
 
 class AlreadyRenderedException(Exception):
