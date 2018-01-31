@@ -1,4 +1,10 @@
 import hashlib
+import sys
+import pytest
+import unittest
+
+from testfixtures import compare, Comparison as C, LogCapture
+
 from pathlib import Path
 from unittest.mock import patch
 
@@ -175,3 +181,38 @@ def test_img_placeholder(tmpdir):
     with open(goat, 'rb') as goat_file:
         expected_img_hexdigest = hashlib.sha1(goat_file.read()).hexdigest()
     assert expected_img_hexdigest == slide.shapes[0].image.sha1
+
+
+def test_not_identifiable_img_placeholder(tmpdir):
+    test_file = str(TEST_FILES / 'simple_img.pptx')
+    template = Template(test_file)
+
+    assert len(template._presentation.slides[0].placeholders) == 1
+
+    # This is the content of the image returned by the ''wrong'' url, which raises the OSError
+    wrong_image = str(TEST_FILES / 'wrong_image_example.jpg')
+    context = {
+        'goat_here_pls': wrong_image,
+    }
+
+    with LogCapture('bureaucracy.powerpoin') as l:
+        l.clear()
+        template.render(context, engine=PythonEngine())
+        l.check(('bureaucracy.powerpoin',
+                'WARNING',
+                "Cannot identify the image at: '{}'."
+                "Leaving it empty and passing to the next image. "
+                "Exception: cannot identify image file, errno={}".format(wrong_image, 'None'),))
+
+    outfile = str(tmpdir.join('placeholders.pptx'))
+    template.save_to(outfile)
+
+    # check that the contents are correctly templated out
+    pres = Presentation(outfile)
+    assert len(pres.slides) == 1
+
+    slide = pres.slides[0]
+
+    # We expect that the image (which couldn't be identified) hasn't been added to the placeholder
+    with pytest.raises(AttributeError):
+        slide.shapes[0].image
